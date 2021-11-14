@@ -30,10 +30,11 @@ import {
 	partial,
 	includes,
 	anyPass,
-	find,
 	filter,
 	length,
-	curry, tap, toPairs, pickBy,
+	tap,
+	pickBy,
+	isEmpty,
 } from 'ramda';
 
 const isWhiteCircle = propEq('circle', 'white');
@@ -47,14 +48,7 @@ const isRedStar = propEq('star', 'red');
 const isGreenSquare = propEq('square', 'green');
 const isOrangeSquare = propEq('square', 'orange');
 
-const curryEquals = curry(equals);
-const curryLte = curry(lte);
-const curryIncludes = curry(includes);
-
-const notWhite = compose(
-	not,
-	curryIncludes('white'),
-);
+const notWhite = compose(not, includes('white'));
 
 const isEquals = apply(equals);
 
@@ -65,77 +59,44 @@ const byColor = compose(
 );
 
 // 1. Красная звезда, зеленый квадрат, все остальные белые.
-export const validateFieldN1 = allPass([
-	isWhiteTriangle,
-	isWhiteCircle,
-	isRedStar,
-	isGreenSquare,
-]);
+export const validateFieldN1 = allPass([isWhiteTriangle, isWhiteCircle, isRedStar, isGreenSquare]);
 
 // 2. Как минимум две фигуры зеленые.
-export const validateFieldN2 = compose(
-	curryLte(2),
-	prop('green'),
-	byColor,
-);
+export const validateFieldN2 = compose(lte(2), prop('green'), byColor);
 
 // 3. Количество красных фигур равно кол-ву синих.
-export const validateFieldN3 = compose(
-	isEquals,
-	props(['red', 'blue']),
-	byColor,
-);
+export const validateFieldN3 = compose(isEquals, props(['red', 'blue']), byColor);
 
 // 4. Синий круг, красная звезда, оранжевый квадрат
-export const validateFieldN4 = allPass([
-	isBlueCircle,
-	isRedStar,
-	isOrangeSquare,
-]);
+export const validateFieldN4 = allPass([isBlueCircle, isRedStar, isOrangeSquare]);
 
 // 5. Три фигуры одного любого цвета кроме белого (четыре фигуры одного цвета – это тоже true).
 export const validateFieldN5 = compose(
-	Boolean,
+	not,
+	isEmpty,
+	tap(console.log),
 	pickBy((val, key) => val >= 3 && key !== 'white'),
 	byColor,
 );
 
 // 6. Две зеленые фигуры (одна из них треугольник), еще одна любая красная.
 export const validateFieldN6 = allPass([
-	compose(curryEquals(1), length, partial(filter, [partialRight(equals, ['red'])]), values),
-	compose(curryEquals(2), length, partial(filter, [partialRight(equals, ['green'])]), values),
+	compose(equals(1), length, partial(filter, [partialRight(equals, ['red'])]), values),
+	compose(equals(2), length, partial(filter, [partialRight(equals, ['green'])]), values),
 	propEq('triangle', 'green'),
 ]);
 
 // 7. Все фигуры оранжевые.
-export const validateFieldN7 = compose(
-	curryEquals(4),
-	prop('orange'),
-	byColor,
-);
+export const validateFieldN7 = compose(equals(4), prop('orange'), byColor);
 
 // 8. Не красная и не белая звезда.
-export const validateFieldN8 = compose(
-	not,
-	anyPass([
-		isRedStar,
-		isWhiteStar,
-	]),
-);
+export const validateFieldN8 = compose(not, anyPass([isRedStar, isWhiteStar]));
 
 // 9. Все фигуры зеленые.
-export const validateFieldN9 = compose(
-	curryEquals(4),
-	prop('green'),
-	byColor,
-);
+export const validateFieldN9 = compose(equals(4), prop('green'), byColor);
 
 // 10. Треугольник и квадрат одного цвета (не белого)
 export const validateFieldN10 = compose(
-	allPass([
-		notWhite,
-		tap(console.log),
-		isEquals,
-	]),
+	allPass([notWhite, tap(console.log), isEquals]),
 	props(['triangle', 'square']),
 );
