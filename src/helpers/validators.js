@@ -22,7 +22,7 @@ import {
 	values,
 	groupBy,
 	mapObjIndexed,
-	gte,
+	lte,
 	partialRight,
 	apply,
 	props,
@@ -33,7 +33,7 @@ import {
 	find,
 	filter,
 	length,
-	curry, tap,
+	curry, tap, toPairs, pickBy,
 } from 'ramda';
 
 const isWhiteCircle = propEq('circle', 'white');
@@ -48,7 +48,7 @@ const isGreenSquare = propEq('square', 'green');
 const isOrangeSquare = propEq('square', 'orange');
 
 const curryEquals = curry(equals);
-const curryGte = curry(gte);
+const curryLte = curry(lte);
 const curryIncludes = curry(includes);
 
 const notWhite = compose(
@@ -74,7 +74,7 @@ export const validateFieldN1 = allPass([
 
 // 2. Как минимум две фигуры зеленые.
 export const validateFieldN2 = compose(
-	curryGte(2),
+	curryLte(2),
 	prop('green'),
 	byColor,
 );
@@ -94,7 +94,11 @@ export const validateFieldN4 = allPass([
 ]);
 
 // 5. Три фигуры одного любого цвета кроме белого (четыре фигуры одного цвета – это тоже true).
-export const validateFieldN5 = compose(find(partialRight(equals, [4])), byColor);
+export const validateFieldN5 = compose(
+	Boolean,
+	pickBy((val, key) => val >= 3 && key !== 'white'),
+	byColor,
+);
 
 // 6. Две зеленые фигуры (одна из них треугольник), еще одна любая красная.
 export const validateFieldN6 = allPass([
