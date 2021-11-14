@@ -33,7 +33,7 @@ import {
 	find,
 	filter,
 	length,
-	curry,
+	curry, tap,
 } from 'ramda';
 
 const isWhiteCircle = propEq('circle', 'white');
@@ -47,14 +47,14 @@ const isRedStar = propEq('star', 'red');
 const isGreenSquare = propEq('square', 'green');
 const isOrangeSquare = propEq('square', 'orange');
 
-const hasWhite = partial(includes, 'white');
+const curryEquals = curry(equals);
+const curryGte = curry(gte);
+const curryIncludes = curry(includes);
+
 const notWhite = compose(
 	not,
-	hasWhite,
+	curryIncludes('white'),
 );
-
-const curryEquals = curry(equals);
-const curryGTE = curry(gte);
 
 const isEquals = apply(equals);
 
@@ -74,7 +74,7 @@ export const validateFieldN1 = allPass([
 
 // 2. Как минимум две фигуры зеленые.
 export const validateFieldN2 = compose(
-	gte(2),
+	curryGte(2),
 	prop('green'),
 	byColor,
 );
@@ -129,8 +129,9 @@ export const validateFieldN9 = compose(
 // 10. Треугольник и квадрат одного цвета (не белого)
 export const validateFieldN10 = compose(
 	allPass([
-		isEquals,
 		notWhite,
+		tap(console.log),
+		isEquals,
 	]),
 	props(['triangle', 'square']),
 );
